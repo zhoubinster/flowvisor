@@ -24,7 +24,7 @@ else
     exit 1
 fi
 
-default_jvm_args="-server -Xms100M -Xmx2000M -XX:OnError=flowvisor-crash-logger -XX:+UseConcMarkSweepGC $fv_defines"
+default_jvm_args="-server -Xms100M -Xmx2000M -XX:OnError=flowvisor-crash-logger -XX:+UseConcMarkSweepGC $fv_defines -Djavax.net.debug=ssl:handshake -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
 
 
 if [ -z $FV_JVM_ARGS ]; then
