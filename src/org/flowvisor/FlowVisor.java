@@ -45,6 +45,11 @@ public class FlowVisor {
 
 	public final static int FLOWVISOR_DB_VERSION = 2;
 
+	public static volatile boolean jettyServerStarted = false;
+
+	public static volatile boolean acceptorStarted = false;
+
+	public static volatile boolean xmlServerStarted = false;
 
 	// Max slicename len ; used in LLDP for now; needs to be 1 byte
 	public final static int MAX_SLICENAME_LEN = 255;
@@ -154,13 +159,16 @@ public class FlowVisor {
 		FVLog.log(LogLevel.DEBUG, null, "HALLO");
 		FlowVisor.setInstance(this);
 		Runtime.getRuntime().addShutdownHook(new ShutdownHook());
-				// init polling loop
+		// init polling loop
 		FVLog.log(LogLevel.INFO, null, "initializing poll loop");
 		FVEventLoop pollLoop = new FVEventLoop();
 		sliceLimits = new SlicerLimits();
-		
-		JettyServer.spawnJettyServer(FVConfig.getJettyPort());//jettyPort);
-		
+
+		if (!jettyServerStarted) {
+			JettyServer.spawnJettyServer(FVConfig.getJettyPort());//jettyPort);
+			jettyServerStarted = true;
+		}
+
 		if (port == 0)
 			port = FVConfig.getListenPort();
 
@@ -169,12 +177,18 @@ public class FlowVisor {
 			handlers.add(TopologyController.spawn(pollLoop));
 
 		// init switchAcceptor
-		OFSwitchAcceptor acceptor = new OFSwitchAcceptor(pollLoop, port, 16);
-		acceptor.setSlicerLimits(sliceLimits);
-		handlers.add(acceptor);
+		if (!acceptorStarted) {
+			OFSwitchAcceptor acceptor = new OFSwitchAcceptor(pollLoop, port, 16);
+			acceptor.setSlicerLimits(sliceLimits);
+			handlers.add(acceptor);
+			acceptorStarted = true;
+		}
 		// start XMLRPC UserAPI server; FIXME not async!
 		try {
-			this.apiServer = APIServer.spawn();
+			if (!xmlServerStarted) {
+				this.apiServer = APIServer.spawn();
+				xmlServerStarted = true;
+			}
 		} catch (Exception e) {
 			FVLog.log(LogLevel.FATAL, null, "failed to spawn APIServer");
 			e.printStackTrace();
@@ -209,7 +223,7 @@ public class FlowVisor {
 	 */
 
 	public static void main(String args[]) throws Throwable {
-	
+
 		ThreadLogger threadLogger = new ThreadLogger();
 		Thread.setDefaultUncaughtExceptionHandler(threadLogger);
 		long lastRestart = System.currentTimeMillis();
@@ -223,15 +237,16 @@ public class FlowVisor {
 				updateDB();
 				if (fv.configFile != null)
 					FVConfig.readFromFile(fv.configFile);
-				else 
+				else
 					// Set temp file for config checkpointing.
 					fv.configFile = "/tmp/flowisor";
-				
-				
-				fv.run(); 
+
+
+				fv.run();
 			}  catch (NullPointerException e) {
+				e.printStackTrace();
 				System.err.println("Startup failed : " + e.getMessage());
-				System.exit(1);
+//				System.exit(1);
 			} catch (Throwable e) {
 				e.printStackTrace();
 				FVLog.log(LogLevel.CRIT, null, "MAIN THREAD DIED!!!");
@@ -253,11 +268,11 @@ public class FlowVisor {
 				fv = null;
 				System.gc(); // give the system a bit to clean up after itself
 				Thread.sleep(1000);
-			} 
+			}
 		}
 	}
 
-	
+
 
 	private void parseArgs(String[] args) {
 		SimpleCLI cmd = null;
@@ -296,7 +311,7 @@ public class FlowVisor {
 			System.err.println("Writting jetty port to config: setting to "
 					+ jp);
 		}
-		
+
 		if(cmd.hasOption("h")){
 			usage("FlowVisor Help");
 			System.exit(0);
@@ -392,8 +407,8 @@ public class FlowVisor {
 	 */
 	public void checkPointConfig() {
 		// FIXME dump db file!!
-		
-		
+
+
 		String tmpFile = this.configFile + ".tmp"; // assumes no one else can
 		// write to same dir
 		// else security problem
@@ -433,9 +448,9 @@ public class FlowVisor {
 		// TODO pull from FVConfig; needed for slice stiching
 		return "magic flowvisor1";
 	}
-	
-	
-	
+
+
+
 	private static void updateDB() {
 		int db_version = FlowvisorImpl.getProxy().fetchDBVersion();
 		if (db_version == FLOWVISOR_DB_VERSION)
@@ -446,9 +461,9 @@ public class FlowVisor {
 		SliceImpl.getProxy().updateDB(db_version);
 		FlowSpaceImpl.getProxy().updateDB(db_version);
 		SwitchImpl.getProxy().updateDB(db_version);
-		
+
 	}
 
 
-	
+
 }

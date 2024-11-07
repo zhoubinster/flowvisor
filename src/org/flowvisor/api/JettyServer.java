@@ -20,6 +20,7 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.FVConfig;
@@ -44,13 +45,13 @@ public class JettyServer implements Runnable{
 
 		//System.setProperty("org.eclipse.jetty.util.log.class", JettyLog.class.getCanonicalName());
 		//org.eclipse.jetty.util.log.Log.setLog(new JettyLogger());
-		
+
 		FVLog.log(LogLevel.INFO, null,
 				"initializing FlowVisor UserAPI JSONRPC SSL WebServer on port "
 						+ port);
 		jettyServer = new Server(port);
 
-		SslSelectChannelConnector sslConnector = new SslSelectChannelConnector();
+		/*SslSelectChannelConnector sslConnector = new SslSelectChannelConnector();
 		sslConnector.setPort(port);
 		String sslKeyStore = System.getProperty("javax.net.ssl.keyStore");
 		if (sslKeyStore == null) {
@@ -64,12 +65,15 @@ public class JettyServer implements Runnable{
 		sslConnector.setKeystore(sslKeyStore);
 
 		String sslKeyStorePW = System.getProperty("javax.net.ssl.keyStorePassword");
-		sslConnector.setPassword(sslKeyStorePW);
+		sslConnector.setPassword(sslKeyStorePW);*/
+		SelectChannelConnector connector = new SelectChannelConnector();
+		connector.setPort(port);
 
-		jettyServer.addConnector(sslConnector);
+
+		jettyServer.addConnector(connector);
 
 
-		jettyServer.setConnectors(new Connector[]{sslConnector});
+		jettyServer.setConnectors(new Connector[]{connector});
 
 
 
@@ -109,8 +113,8 @@ public class JettyServer implements Runnable{
 
 		@Override
 		public final void handle(String target,Request baseRequest,
-				HttpServletRequest request,HttpServletResponse response)
-		throws IOException, ServletException
+								 HttpServletRequest request,HttpServletResponse response)
+				throws IOException, ServletException
 		{
 			if(baseRequest.getAuthentication().equals(Authentication.UNAUTHENTICATED)){
 				response.sendError(Response.SC_UNAUTHORIZED, "Permission denied.");
@@ -122,7 +126,7 @@ public class JettyServer implements Runnable{
 			baseRequest.setHandled(true);
 		}
 	}
-	
+
 	private ConstraintSecurityHandler createAuthenticationHandler(Server server){
 		ConstraintSecurityHandler security = new ConstraintSecurityHandler();
 		security.setRealmName(REALM_NAME);
@@ -143,8 +147,8 @@ public class JettyServer implements Runnable{
 		knownRoles.add("admin");
 		security.setConstraintMappings(new ConstraintMapping[] {mapping}, knownRoles);
 		security.setAuthenticator(new BasicAuthenticator());
-		
-		
+
+
 		LoginService loginService = new FlowVisorLoginService();
 		server.addBean(loginService);
 		security.setLoginService(loginService);
@@ -167,14 +171,14 @@ public class JettyServer implements Runnable{
 			FVLog.log(LogLevel.INFO, null, "JSON service disabled in config (Jetty webserver port == -1)");
 			return;
 		}
-		
-		
+
+
 		Thread jettyThread = new Thread(new JettyServer(port));
 		jettyThread.start();
 	}
-	
-	
-		
-	
+
+
+
+
 
 }

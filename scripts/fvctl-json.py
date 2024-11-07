@@ -38,8 +38,11 @@ def getUrl(opts):
     return URL % (opts.host, opts.port)
 
 def buildRequest(data, url, cmd):
+    print "request data:%s" % data
+    print "request url:%s" % url
+    print "request cmd:%s" % cmd
     j = { "id" : "fvctl", "method" : cmd, "jsonrpc" : "2.0" }
-    h = {"Content-Type" : "application/json"}    
+    h = {"Content-Type" : "application/json"}
     if data is not None:
         j['params'] = data
     return urllib2.Request(url, json.dumps(j), h)
@@ -49,7 +52,7 @@ def getError(code):
         return ERRORS[code]
     except Exception, e:
         return "Unknown Error"
-     
+
 
 def pa_none(args, cmd):
     (sdesc, ldesc) = DESCS[cmd]
@@ -66,29 +69,29 @@ def do_listSlices(gopts, opts, args):
 
 def pa_addSlice(args, cmd):
     usage = ("%s [options] <slicename> <controller-url> " 
-               "<admin-email>") % USAGE.format(cmd) 
+               "<admin-email>") % USAGE.format(cmd)
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
-     
+
     parser.add_option("-d", "--drop-policy", dest="drop", default="exact",
             help="Drop rule type; default='exact'")
     parser.add_option("-l", "--recv-lldp", action="store_true", default=False, dest="lldp",
-            help="Slice to receive unknown LLDP; default=False")         
+            help="Slice to receive unknown LLDP; default=False")
     parser.add_option("-f", "--flowmod-limit", type="int", default=-1, dest="flow",
             help="Slice tcam usage; default is none (-1)")
     parser.add_option("-r", "--rate-limit", type="int", default=-1, dest="rate",
             help="Slice control path rate limit; default is none (-1)")
-    parser.add_option("-p", "--password", dest="passwd", default=None, 
+    parser.add_option("-p", "--password", dest="passwd", default=None,
             help="Slice password")
     parser.add_option( "--disabled", action="store_false", default=True, dest="isEnabled",
-            help="Disable this slice initially; default=False")         
+            help="Disable this slice initially; default=False")
 
     (options, args) = parser.parse_args(args)
     return (options, args)
 
 def do_addSlice(gopts, opts, args):
     if len(args) != 3:
-        print "add-slice : Must specify the slice name, controller url and admin contact" 
+        print "add-slice : Must specify the slice name, controller url and admin contact"
         sys.exit()
     passwd = getPassword(gopts)
     req = { "slice-name" : args[0], "controller-url" : args[1], "admin-contact" : args[2] }
@@ -109,7 +112,7 @@ def pa_updateSlice(args, cmd):
     usage = "%s [options] <slicename>" % USAGE.format(cmd)
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
-    
+
     parser.add_option("-n", "--controller-hostname", dest="chost", default=None,
             help="Specify new controller hostname")
     parser.add_option("-p", "--controller-port", dest="cport", default=None, type='int',
@@ -118,12 +121,12 @@ def pa_updateSlice(args, cmd):
             help="Specify new admin contact")
     parser.add_option("-d", "--drop-policy", dest="drop", default=None,
             help="Specify new drop policy")
-     
+
     parser.add_option( "--enable-slice", action="store_true", default=None, dest="status",
             help="Enables the slice.")
     parser.add_option( "--disable-slice", action="store_false", default=None, dest="status",
             help="Disables the slice.")
-    
+
     parser.add_option( "--enable-recv-lldp", action="store_true", default=None, dest="lldp",
             help="Enable reception of unknown LLDPs for this slice")
     parser.add_option( "--disable-recv-lldp", action="store_false", default=None, dest="lldp",
@@ -137,7 +140,7 @@ def pa_updateSlice(args, cmd):
 
 def do_updateSlice(gopts, opts,args):
     if len(args) != 1:
-        print "update-slice : Must specify the slice that you want to update." 
+        print "update-slice : Must specify the slice that you want to update."
         sys.exit()
     passwd = getPassword(gopts)
     req = { "slice-name" : args[0] }
@@ -164,8 +167,8 @@ def do_updateSlice(gopts, opts,args):
 def pa_removeSlice(args, cmd):
     usage = "%s <slicename>" % USAGE.format(cmd)
     (sdesc, ldesc) = DESCS[cmd]
-    parser = OptionParser(usage=usage, description=ldesc)   
- 
+    parser = OptionParser(usage=usage, description=ldesc)
+
     return parser.parse_args(args)
 
 def do_removeSlice(gopts, opts, args):
@@ -173,7 +176,7 @@ def do_removeSlice(gopts, opts, args):
         print "remove-slice : Must specify the slice that you want to remove."
         sys.exit()
     passwd = getPassword(gopts)
-    req = { "slice-name" : args[0] } 
+    req = { "slice-name" : args[0] }
     ret = connect(gopts, "remove-slice", passwd, data=req)
     if ret:
         print "Slice %s has been deleted" % args[0]
@@ -183,8 +186,8 @@ def pa_updateSlicePassword(args, cmd):
     usage = "%s [options] <slicename>" % USAGE.format(cmd)
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
-    
-    parser.add_option("-p", "--password", default=None, dest="passwd", 
+
+    parser.add_option("-p", "--password", default=None, dest="passwd",
             help="New password for slice.")
     return parser.parse_args(args)
 
@@ -193,7 +196,7 @@ def do_updateSlicePassword(gopts, opts, args):
         print "update-slice-password : Must specify the slice."
         sys.exit()
     passwd = getPassword(gopts)
-    req = { "slice-name" : args[0] } 
+    req = { "slice-name" : args[0] }
     if opts.passwd is not None:
         req['password'] = opts.passwd
     else:
@@ -207,8 +210,8 @@ def pa_updateAdminPassword(args, cmd):
     usage = "%s [options] " % USAGE.format(cmd)
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
-    
-    parser.add_option("-p", "--password", default=None, dest="passwd", 
+
+    parser.add_option("-p", "--password", default=None, dest="passwd",
             help="New password for admin.")
     return parser.parse_args(args)
 
@@ -227,8 +230,8 @@ def pa_listFlowSpace(args, cmd):
     usage = "%s [options] " % USAGE.format(cmd)
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
-    
-    parser.add_option("-s", "--slice-name", default=None, dest="slice", 
+
+    parser.add_option("-s", "--slice-name", default=None, dest="slice",
             help="Fetch flowspace for specified slice.")
     parser.add_option("-x", "--output-hex", default=False, action="store_true", dest="hex",
             help="Displays relevant fields in hex")
@@ -280,7 +283,7 @@ def pa_removeFlowSpace(args, cmd):
 
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
-    
+
     return parser.parse_args(args)
 
 def do_removeFlowSpace(gopts, opts, args):
@@ -288,7 +291,7 @@ def do_removeFlowSpace(gopts, opts, args):
         print "remove-flowpace : Must specify the name of the flowspace to remove."
         sys.exit()
     passwd = getPassword(gopts)
-    ret = connect(gopts, "remove-flowspace", passwd, data=args)  
+    ret = connect(gopts, "remove-flowspace", passwd, data=args)
     if ret:
         print "Flowspace entries have been removed."
 
@@ -297,9 +300,9 @@ def pa_addFlowSpace(args, cmd):
 
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
-    
+
     parser.add_option("-q", "--queues", default=None, dest="queues", type="string",
-            action="callback", callback=list_callback, 
+            action="callback", callback=list_callback,
             help="Define list of queues permitted on this flowspace.")
     parser.add_option("-f", "--forced-queue", default=None, dest="fqueue", type="int",
             help="Force a queue id upon output action.")
@@ -313,7 +316,7 @@ def do_addFlowSpace(gopts, opts, args):
         print "add-flowspace <flowspace-name> <dpid> <priority> <dl_vlan=1-10> <slice-perm>"
         sys.exit()
     passwd = getPassword(gopts)
-    if(args[3].find('-') != -1):   
+    if(args[3].find('-') != -1):
         #Get the ranges
         ranges = getRange(args[3])
         if((int(ranges[0]) < 1) or (int(ranges[0]) > 4095) or (int(ranges[1]) < 1) or (int(ranges[1]) > 4095)):
@@ -350,7 +353,7 @@ def do_addFlowSpace(gopts, opts, args):
             act = { 'slice-name' : parts[0], "permission" : parts[1] }
             acts.append(act)
         req['slice-action'] = acts
-        ret = connect(gopts, "add-flowspace", passwd, data=[req])  
+        ret = connect(gopts, "add-flowspace", passwd, data=[req])
         if ret:
             print "FlowSpace %s was added with request id %s." % (args[0], ret)
 
@@ -359,7 +362,7 @@ def pa_updateFlowSpace(args, cmd):
 
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
-    
+
     parser.add_option("-d", "--dpid", default=None, dest="dpid", type="string",
             help="Set the dpid for flowspace entry.")
     parser.add_option("-p", "--priority", default=None, dest="prio", type="int",
@@ -369,7 +372,7 @@ def pa_updateFlowSpace(args, cmd):
     parser.add_option("-s", "--slice-action", default=None, dest="sact", type="string",
             help="Set the slice(s) for flowspace entry.")
     parser.add_option("-q", "--queues", default=None, dest="queues", type="string",
-            action="callback", callback=list_callback, 
+            action="callback", callback=list_callback,
             help="Define list of queues permitted on this flowspace.")
     parser.add_option("-f", "--forced-queue", default=None, dest="fqueue", type="int",
             help="Force a queue id upon output action.")
@@ -394,7 +397,7 @@ def do_updateFlowSpace(gopts, opts, args):
         req['dpid'] = opts.dpid
     if opts.prio is not None:
         req['priority'] = opts.prio
-    if opts.sact is not None:       
+    if opts.sact is not None:
         actions = opts.sact.split(',')
         acts = []
         for action in actions:
@@ -405,7 +408,7 @@ def do_updateFlowSpace(gopts, opts, args):
     if len(req.keys()) <= 1:
         print "update-flowspace : You may want to actually specify something to update."
         sys.exit()
-    ret = connect(gopts, "update-flowspace", passwd, data=[req])  
+    ret = connect(gopts, "update-flowspace", passwd, data=[req])
     if ret:
         print "Flowspace %s was updated with request id %s" % (args[0], ret)
 
@@ -417,10 +420,10 @@ def do_listVersion(gopts, opts, args):
 
 def pa_saveConfig(args, cmd):
     usage = "%s <config-file>" % USAGE.format(cmd)
-   
+
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
- 
+
     return parser.parse_args(args)
 
 def do_saveConfig(gopts, opts, args):
@@ -436,7 +439,7 @@ def do_saveConfig(gopts, opts, args):
 
 def pa_getConfig(args, cmd):
     usage = "%s [options]" % USAGE.format(cmd)
-    
+
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
 
@@ -458,7 +461,7 @@ def do_getConfig(gopts, opts, args):
 
 def pa_setConfig(args, cmd):
     usage = "%s [options]" % USAGE.format(cmd)
-    
+
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
 
@@ -480,7 +483,7 @@ def pa_setConfig(args, cmd):
             help="Disable topology controller.")
     parser.add_option("-c", "--flow-stats-cache", default=None, dest="cache", type="int",
             help="Set the aging timer for the flow stats cache.")
-    
+
     return parser.parse_args(args)
 
 def do_setConfig(gopts, opts, args):
@@ -493,7 +496,7 @@ def do_setConfig(gopts, opts, args):
             sys.exit()
         elif len(parts) == 1:
             req['flood-perm'] = { 'slice-name' : parts[0] }
-        else: 
+        else:
             req['flood-perm'] = { 'slice-name' : parts[0], 'dpid' : parts[1] }
 
     if opts.limit is not None:
@@ -520,7 +523,7 @@ def pa_listSliceInfo(args, cmd):
     usage = "%s <slicename>" % USAGE.format(cmd)
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
-    
+
     return parser.parse_args(args)
 
 def do_listSliceInfo(gopts, opts, args):
@@ -549,8 +552,8 @@ def do_listDatapaths(gopts, opts, args):
 def pa_listDatapathInfo(args, cmd):
     usage = "%s <dpid>" % USAGE.format(cmd)
     (sdesc, ldesc) = DESCS[cmd]
-    parser = OptionParser(usage=usage, description=ldesc)   
- 
+    parser = OptionParser(usage=usage, description=ldesc)
+
     return parser.parse_args(args)
 
 def do_listDatapathInfo(gopts, opts, args):
@@ -566,7 +569,7 @@ def pa_listDatapathStats(args, cmd):
     usage = "%s <dpid>" % USAGE.format(cmd)
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
-    
+
     return parser.parse_args(args)
 
 def do_listDatapathStats(gopts, opts, args):
@@ -581,7 +584,7 @@ def do_listDatapathStats(gopts, opts, args):
 def pa_listSliceStats(args, cmd):
     usage = "%s <slicename>" % USAGE.format(cmd)
     parser = OptionParser(usage=usage)
-    
+
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
     return parser.parse_args(args)
@@ -598,7 +601,7 @@ def do_listSliceStats(gopts, opts, args):
 def pa_regEventCB(args, cmd):
     usage = "%s <url> <methodname> <eventtype> <name>" % USAGE.format(cmd)
     parser = OptionParser(usage=usage)
-    
+
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
     parser.add_option("-d", "--dpid", dest="dpid", type="string", default=None,
@@ -622,7 +625,7 @@ def do_regEventCB(gopts, opts, args):
 def pa_unregEventCB(args, cmd):
     usage = "%s <methodname> <eventtype> <name>" % USAGE.format(cmd)
     parser = OptionParser(usage=usage)
-    
+
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
     parser.add_option("-d", "--dpid", dest="dpid", type="string", default=None,
@@ -646,7 +649,7 @@ def do_unregEventCB(gopts, opts, args):
 def do_listFVHealth(gopts, opts, args):
     passwd = getPassword(gopts)
     ret = connect(gopts, "list-fv-health", passwd)
-    print json.dumps(ret, sort_keys=True, indent = 2) 
+    print json.dumps(ret, sort_keys=True, indent = 2)
 
 def pa_listSliceHealth(args, cmd):
     usage = "%s <slicename>" % USAGE.format(cmd)
@@ -732,7 +735,7 @@ def do_help(gopts, opts, args):
     except KeyError, e:
         print "Invalid command : %s is an unknown command." % args[0]
         sys.exit()
-    
+
 
 def makeMatch(matchStr):
     if matchStr == 'any' or matchStr == 'all':
@@ -789,18 +792,27 @@ def getRange(matchStr):
             if len(ranges) !=2:
                 print "The vlan range should be given in the form <from>-<to>, for eg. dl_vlan=10-100"
     return ranges
-               
+
 def connect(opts, cmd, passwd, data=None):
     try:
-        url = getUrl(opts)
-        passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        passman.add_password(None, url, opts.fv_user, passwd)
-        authhandler = urllib2.HTTPBasicAuthHandler(passman)
-        opener = urllib2.build_opener(authhandler)
-
-        req = buildRequest(data, url, cmd)
-        ph = opener.open(req)
-        return parseResponse(ph.read())
+        print "start connect...."
+    url = getUrl(opts)
+    print "Connecting to URL: %s" % url
+    passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
+    passman.add_password(None, url, opts.fv_user, passwd)
+    print "opts.fv_user: %s" % opts.fv_user
+    authhandler = urllib2.HTTPBasicAuthHandler(passman)
+    print "build_opener...."
+    opener = urllib2.build_opener(authhandler)
+    print "build request...."
+    req = buildRequest(data, url, cmd)
+    print "build request complete:%s...." % req.get_data()
+    ph = opener.open(req)
+    print "after open...."
+    response_data = ph.read()
+    print "Response data: %s" % response_data
+    # return parseResponse("{\"result\": true}")
+    return parseResponse(ph.read())
     except urllib2.HTTPError, e:
         if e.code == 401:
             print "Authentication failed: invalid password"
@@ -811,7 +823,7 @@ def connect(opts, cmd, passwd, data=None):
         else:
             print e
     except urllib2.URLError, e:
-        print "Could not reach a FlowVisor RPC server at %s:%s." % (opts.host, opts.port) 
+        print "Could not reach a FlowVisor RPC server at %s:%s." % (opts.host, opts.port)
         print "Please check that FlowVisor is running and try again."
         sys.exit(1)
     except RuntimeError, e:
@@ -828,7 +840,7 @@ def toInt(val):
     if val is None:
         return
     if val is not None and val.find('0x') != -1:
-        return int(val,16) 
+        return int(val,16)
     return int(val)
 
 def toMacInt(val):
@@ -933,14 +945,14 @@ ERRORS = {
 
 USAGE="%prog {0}"
 
-URL = "https://%s:%s"
+URL = "http://%s:%s"
 
 
 DESCS = {
     'list-slices' : ("Displays the configured slices",
                     "Displays currently configured slices."
                     ),
-    'add-slice' :   ("Creates a new slice", 
+    'add-slice' :   ("Creates a new slice",
                     ("Creates a new slice. The slicename can contain any character except "
                     "except the newline (Note: slicenames are case insensitive). " 
                     "The controller url is of the form tcp:hostname:port, "
@@ -954,21 +966,21 @@ DESCS = {
                     "The rate limits the number of OpenFlow messages that can be sent to the switches from this "
                     "slice. You may also set the slice to receive unknown LLDP messages. Optionally, you may set "
                     "this slice as disabled initially, this is then changed via an update-slice call. "
-                    "Finally, the password is the slice password." 
+                    "Finally, the password is the slice password."
                      )
                     ),
-    'update-slice' :("Changes slice parameters", 
+    'update-slice' :("Changes slice parameters",
                     ("Allows a slice or admin user to change the parameters of a slice. "
                     "Currently all the parameters of a slice are changeable, except the slicename"
                     )
                     ),
-    'remove-slice' :("Deletes a slice", 
+    'remove-slice' :("Deletes a slice",
                     ("Deletes a slices and removes all the associated flowspace. "
                     )),
-    'update-slice-password' : ("Updates slice password", 
+    'update-slice-password' : ("Updates slice password",
                     ("Updates the slice password for the specified slice."
                     )),
-    'update-admin-password' : ("Update admin password", 
+    'update-admin-password' : ("Update admin password",
                     ("Update the admin password.")
                     ),
     'list-flowspace' : ("Displays the flowspace",
@@ -989,13 +1001,13 @@ DESCS = {
                     "To specify the range for dl_vlan match field, the add-flowspace api has to be used as in the below example:" 
                     "Eg. ./fvctl.py add-flowspace flow1 all 1000 dl_vlan=1-10 slice1=6"
                     "See the fvctl man page for information "
-                    "on the format of <dpid>, <match>, and <slice-perm>." 
+                    "on the format of <dpid>, <match>, and <slice-perm>."
                     )),
     'update-flowspace' : ("Changes flowspace rule parameters",
                     ("Updates a parameter of a flowspace rule with a given name. The parameters follow "
                     "the same format as in add-flowspace."
                     )),
-    'remove-flowspace' : ("Remove a flowspace rule", 
+    'remove-flowspace' : ("Remove a flowspace rule",
                     ("Removes the specified flowspace rule, given the name or a list of names of "
                     "flowspace entries."
                     )),
@@ -1035,7 +1047,7 @@ DESCS = {
     'list-datapaths' : ("Displays the devices",
                     ("Displays the devices, ie. switches, currently connected to FlowVisor by DPID."
                     )),
-    'list-datapath-info' : ("Displays information for a connected device", 
+    'list-datapath-info' : ("Displays information for a connected device",
                     ("Displays information about a connected device, including ports and "
                     "connection information and the current number of flowmods installed "
                     "by each slice."
@@ -1044,7 +1056,7 @@ DESCS = {
                     ("Displays statistics about a connected device, these include sent and "
                     "received messages sorted by OpenFlow message type."
                     )),
-    'list-links' : ("Display overall topology", 
+    'list-links' : ("Display overall topology",
                     ("Displays the overall (ie. unsliced) network topology provided that "
                     "the topology controller is running."
                    )),
@@ -1086,7 +1098,7 @@ def parse_global_args(arglist):
     args = []
     while (len(arglist) != 0 and arglist[0] not in CMDS):
         args.append(arglist[0])
-        arglist.pop(0) 
+        arglist.pop(0)
     parser = OptionParser(add_help_option=False, usage=usage)
     addCommonOpts(parser)
     (opts, pargs) = parser.parse_args(args)
