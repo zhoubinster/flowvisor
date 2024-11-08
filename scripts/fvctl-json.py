@@ -812,7 +812,7 @@ def connect(opts, cmd, passwd, data=None):
         response_data = ph.read()
         print "Response data: %s" % response_data
         # return parseResponse("{\"result\": true}")
-        return parseResponse(ph.read())
+        return parseResponse(response_data)
     except urllib2.HTTPError, e:
         if e.code == 401:
             print "Authentication failed: invalid password"
