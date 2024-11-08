@@ -796,23 +796,23 @@ def getRange(matchStr):
 def connect(opts, cmd, passwd, data=None):
     try:
         print "start connect...."
-    url = getUrl(opts)
-    print "Connecting to URL: %s" % url
-    passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
-    passman.add_password(None, url, opts.fv_user, passwd)
-    print "opts.fv_user: %s" % opts.fv_user
-    authhandler = urllib2.HTTPBasicAuthHandler(passman)
-    print "build_opener...."
-    opener = urllib2.build_opener(authhandler)
-    print "build request...."
-    req = buildRequest(data, url, cmd)
-    print "build request complete:%s...." % req.get_data()
-    ph = opener.open(req)
-    print "after open...."
-    response_data = ph.read()
-    print "Response data: %s" % response_data
-    # return parseResponse("{\"result\": true}")
-    return parseResponse(ph.read())
+        url = getUrl(opts)
+        print "Connecting to URL: %s" % url
+        passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
+        passman.add_password(None, url, opts.fv_user, passwd)
+        print "opts.fv_user: %s" % opts.fv_user
+        authhandler = urllib2.HTTPBasicAuthHandler(passman)
+        print "build_opener...."
+        opener = urllib2.build_opener(authhandler)
+        print "build request...."
+        req = buildRequest(data, url, cmd)
+        print "build request complete:%s...." % req.get_data()
+        ph = opener.open(req)
+        print "after open...."
+        response_data = ph.read()
+        print "Response data: %s" % response_data
+        # return parseResponse("{\"result\": true}")
+        return parseResponse(ph.read())
     except urllib2.HTTPError, e:
         if e.code == 401:
             print "Authentication failed: invalid password"
