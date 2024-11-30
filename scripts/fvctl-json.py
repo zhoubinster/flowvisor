@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 # Copyright (c) 2012-2013  The Board of Trustees of The Leland Stanford Junior University
 
-import urllib2
-import urlparse
+import urllib.request
 import sys
 import getpass
-import functools
 import json
-import pprint
-import re
 from optparse import OptionParser
 
 def getPassword(opts):
@@ -38,19 +34,19 @@ def getUrl(opts):
     return URL % (opts.host, opts.port)
 
 def buildRequest(data, url, cmd):
-    # print "request data:%s" % data
-    # print "request url:%s" % url
-    # print "request cmd:%s" % cmd
+    # print("request data:%s" % data)
+    # print("request url:%s" % url)
+    # print("request cmd:%s" % cmd)
     j = { "id" : "fvctl", "method" : cmd, "jsonrpc" : "2.0" }
     h = {"Content-Type" : "application/json"}
     if data is not None:
         j['params'] = data
-    return urllib2.Request(url, json.dumps(j), h)
+    return urllib.request.Request(url, json.dumps(j).encode('utf-8'), h)
 
 def getError(code):
     try:
         return ERRORS[code]
-    except Exception, e:
+    except Exception as e:
         return "Unknown Error"
 
 
@@ -63,9 +59,9 @@ def pa_none(args, cmd):
 def do_listSlices(gopts, opts, args):
     passwd = getPassword(gopts)
     data = connect(gopts, "list-slices", passwd)
-    print 'Configured slices:'
+    print('Configured slices:')
     for name in data:
-        print '{0:15} --> {1:8}'.format(name['slice-name'], 'enabled' if name['admin-status'] else 'disabled')
+        print('{0:15} --> {1:8}'.format(name['slice-name'], 'enabled' if name['admin-status'] else 'disabled'))
 
 def pa_addSlice(args, cmd):
     usage = ("%s [options] <slicename> <controller-url> " 
@@ -91,7 +87,7 @@ def pa_addSlice(args, cmd):
 
 def do_addSlice(gopts, opts, args):
     if len(args) != 3:
-        print "add-slice : Must specify the slice name, controller url and admin contact"
+        print("add-slice : Must specify the slice name, controller url and admin contact")
         sys.exit()
     passwd = getPassword(gopts)
     req = { "slice-name" : args[0], "controller-url" : args[1], "admin-contact" : args[2] }
@@ -106,7 +102,7 @@ def do_addSlice(gopts, opts, args):
     req['admin-status'] = opts.isEnabled
     ret = connect(gopts, "add-slice", passwd, data=req)
     if ret:
-        print "Slice %s was successfully created" % args[0]
+        print("Slice %s was successfully created" % args[0])
 
 def pa_updateSlice(args, cmd):
     usage = "%s [options] <slicename>" % USAGE.format(cmd)
@@ -140,7 +136,7 @@ def pa_updateSlice(args, cmd):
 
 def do_updateSlice(gopts, opts,args):
     if len(args) != 1:
-        print "update-slice : Must specify the slice that you want to update."
+        print("update-slice : Must specify the slice that you want to update.")
         sys.exit()
     passwd = getPassword(gopts)
     req = { "slice-name" : args[0] }
@@ -162,7 +158,7 @@ def do_updateSlice(gopts, opts,args):
         req['admin-status'] = opts.status
     ret = connect(gopts, "update-slice", passwd, data=req)
     if ret:
-        print "Slice %s has been successfully updated" % args[0]
+        print("Slice %s has been successfully updated" % args[0])
 
 def pa_removeSlice(args, cmd):
     usage = "%s <slicename>" % USAGE.format(cmd)
@@ -173,13 +169,13 @@ def pa_removeSlice(args, cmd):
 
 def do_removeSlice(gopts, opts, args):
     if len(args) != 1:
-        print "remove-slice : Must specify the slice that you want to remove."
+        print("remove-slice : Must specify the slice that you want to remove.")
         sys.exit()
     passwd = getPassword(gopts)
     req = { "slice-name" : args[0] }
     ret = connect(gopts, "remove-slice", passwd, data=req)
     if ret:
-        print "Slice %s has been deleted" % args[0]
+        print("Slice %s has been deleted" % args[0])
 
 
 def pa_updateSlicePassword(args, cmd):
@@ -193,7 +189,7 @@ def pa_updateSlicePassword(args, cmd):
 
 def do_updateSlicePassword(gopts, opts, args):
     if len(args) != 1:
-        print "update-slice-password : Must specify the slice."
+        print("update-slice-password : Must specify the slice.")
         sys.exit()
     passwd = getPassword(gopts)
     req = { "slice-name" : args[0] }
@@ -203,7 +199,7 @@ def do_updateSlicePassword(gopts, opts, args):
         req['password'] = getpass.getpass("New slice password: ")
     ret = connect(gopts, "update-slice-password", passwd, data=req)
     if ret:
-        print "Slice password for %s has been updated." % args[0]
+        print("Slice password for %s has been updated." % args[0])
 
 
 def pa_updateAdminPassword(args, cmd):
@@ -224,7 +220,7 @@ def do_updateAdminPassword(gopts, opts, args):
         req['password'] = getpass.getpass("New admin password: ")
     ret = connect(gopts, "update-admin-password", passwd, data=req)
     if ret:
-        print "Admin password has been updated."
+        print("Admin password has been updated.")
 
 def pa_listFlowSpace(args, cmd):
     usage = "%s [options] " % USAGE.format(cmd)
@@ -265,17 +261,17 @@ def do_listFlowSpace(gopts, opts, args):
     if opts.hex:
         for fs in ret:
             fs['match'] = toHex(fs['match'])
-    print out
+    print(out)
     if len(ret) == 0:
-        print "  None"
+        print("  None")
         sys.exit()
     for item in ret:
         prettify(item)
         if opts.pretty:
-            print json.dumps(item, sort_keys=True, indent=1)
-            print "\n\n"
+            print(json.dumps(item, sort_keys=True, indent=1))
+            print("\n\n")
         else:
-            print json.dumps(item)
+            print(json.dumps(item))
 
 
 def pa_removeFlowSpace(args, cmd):
@@ -288,12 +284,12 @@ def pa_removeFlowSpace(args, cmd):
 
 def do_removeFlowSpace(gopts, opts, args):
     if len(args) < 1:
-        print "remove-flowpace : Must specify the name of the flowspace to remove."
+        print("remove-flowpace : Must specify the name of the flowspace to remove.")
         sys.exit()
     passwd = getPassword(gopts)
     ret = connect(gopts, "remove-flowspace", passwd, data=args)
     if ret:
-        print "Flowspace entries have been removed."
+        print("Flowspace entries have been removed.")
 
 def pa_addFlowSpace(args, cmd):
     usage = "%s [options] <flowspace-name> <dpid> <priority> <match> <slice-perm>" % USAGE.format(cmd)
@@ -310,17 +306,17 @@ def pa_addFlowSpace(args, cmd):
 
 def do_addFlowSpace(gopts, opts, args):
     if len(args) != 5:
-        print "add-flowpace : Requires 5 arguments; only %d given" % len(args)
-        print "add-flowspace: <flowspace-name> <dpid> <priority> <match> <slice-perm>"
-        print "If range is specified for vlan, the format for add-flowspace is as below:(Currently only vlan ranges are supported)"
-        print "add-flowspace <flowspace-name> <dpid> <priority> <dl_vlan=1-10> <slice-perm>"
+        print("add-flowpace : Requires 5 arguments; only %d given" % len(args))
+        print("add-flowspace: <flowspace-name> <dpid> <priority> <match> <slice-perm>")
+        print("If range is specified for vlan, the format for add-flowspace is as below:(Currently only vlan ranges are supported)")
+        print("add-flowspace <flowspace-name> <dpid> <priority> <dl_vlan=1-10> <slice-perm>")
         sys.exit()
     passwd = getPassword(gopts)
     if(args[3].find('-') != -1):
         #Get the ranges
         ranges = getRange(args[3])
         if((int(ranges[0]) < 1) or (int(ranges[0]) > 4095) or (int(ranges[1]) < 1) or (int(ranges[1]) > 4095)):
-            print "The vlan range should be within 1 and 4095"
+            print("The vlan range should be within 1 and 4095")
             sys.exit()
         for r in range((int(ranges[0])), (int(ranges[1])+1)):
             match = makeMatchWithRanges(args[3],r)
@@ -338,7 +334,7 @@ def do_addFlowSpace(gopts, opts, args):
             req['slice-action'] = acts
             ret = connect(gopts, "add-flowspace", passwd, data=[req])
             if ret:
-                print "FlowSpace %s was added with request id %s." % (args[0], ret)
+                print("FlowSpace %s was added with request id %s." % (args[0], ret))
     else:
         match = makeMatch(args[3])
         req = { "name" : args[0], "dpid" : args[1], "priority" : int(args[2]), "match" : match }
@@ -355,7 +351,7 @@ def do_addFlowSpace(gopts, opts, args):
         req['slice-action'] = acts
         ret = connect(gopts, "add-flowspace", passwd, data=[req])
         if ret:
-            print "FlowSpace %s was added with request id %s." % (args[0], ret)
+            print("FlowSpace %s was added with request id %s." % (args[0], ret))
 
 def pa_updateFlowSpace(args, cmd):
     usage = "%s [options] <flowspace-name>" % USAGE.format(cmd)
@@ -381,8 +377,8 @@ def pa_updateFlowSpace(args, cmd):
 
 def do_updateFlowSpace(gopts, opts, args):
     if len(args) != 1:
-        print "update-flowpace : Requires 1 argument; only %d given" % len(args)
-        print "update-flowspace: <flowspace-name>"
+        print("update-flowpace : Requires 1 argument; only %d given" % len(args))
+        print("update-flowspace: <flowspace-name>")
         sys.exit()
     passwd = getPassword(gopts)
     req = {'name' : args[0]}
@@ -406,17 +402,17 @@ def do_updateFlowSpace(gopts, opts, args):
             acts.append(act)
         req['slice-action'] = acts
     if len(req.keys()) <= 1:
-        print "update-flowspace : You may want to actually specify something to update."
+        print("update-flowspace : You may want to actually specify something to update.")
         sys.exit()
     ret = connect(gopts, "update-flowspace", passwd, data=[req])
     if ret:
-        print "Flowspace %s was updated with request id %s" % (args[0], ret)
+        print("Flowspace %s was updated with request id %s" % (args[0], ret))
 
 def do_listVersion(gopts, opts, args):
     passwd = getPassword(gopts)
     ret = connect(gopts, "list-version", passwd)
-    print "FlowVisor version : %s" % ret['flowvisor-version']
-    print "FlowVisor DB version : %s" % ret['db-version']
+    print("FlowVisor version : %s" % ret['flowvisor-version'])
+    print("FlowVisor DB version : %s" % ret['db-version'])
 
 def pa_saveConfig(args, cmd):
     usage = "%s <config-file>" % USAGE.format(cmd)
@@ -428,14 +424,14 @@ def pa_saveConfig(args, cmd):
 
 def do_saveConfig(gopts, opts, args):
     if len(args) != 1:
-        print "save-config : Need a config-file to save config to."
+        print("save-config : Need a config-file to save config to.")
         sys.exit()
     passwd = getPassword(gopts)
     ret = connect(gopts, "save-config", passwd)
     output = open(args[0], 'w')
     print>>output, ret
     output.close()
-    print "Config file written to %s." % args[0]
+    print("Config file written to %s." % args[0])
 
 def pa_getConfig(args, cmd):
     usage = "%s [options]" % USAGE.format(cmd)
@@ -457,7 +453,7 @@ def do_getConfig(gopts, opts, args):
     if opts.dpid is not None:
         req['dpid'] = opts.dpid
     ret = connect(gopts, "get-config", passwd, data=req)
-    print json.dumps(ret, sort_keys=True, indent = 2)
+    print(json.dumps(ret, sort_keys=True, indent = 2))
 
 def pa_setConfig(args, cmd):
     usage = "%s [options]" % USAGE.format(cmd)
@@ -492,7 +488,7 @@ def do_setConfig(gopts, opts, args):
     if opts.perm is not None:
         parts = opts.perm.split(',')
         if len(parts) > 2 or len(parts) < 1:
-            print "Setting the flood permission requires only the slice and optionally the dpid, see help."
+            print("Setting the flood permission requires only the slice and optionally the dpid, see help.")
             sys.exit()
         elif len(parts) == 1:
             req['flood-perm'] = { 'slice-name' : parts[0] }
@@ -502,7 +498,7 @@ def do_setConfig(gopts, opts, args):
     if opts.limit is not None:
         parts = opts.limit.split(',')
         if len(parts) != 3:
-            print "Need to specify SLICE, DPID, and LIMIT for flowmod limit, see help"
+            print("Need to specify SLICE, DPID, and LIMIT for flowmod limit, see help")
             sys.exit()
         req['flowmod-limit'] = { 'slice-name' : parts[0], 'dpid' : parts[1], 'limit' : int(parts[2]) }
 
@@ -516,7 +512,7 @@ def do_setConfig(gopts, opts, args):
         req['flow-stats-cache'] = opts.cache
     ret = connect(gopts, "set-config", passwd, data=req)
     if ret:
-        print "Configuration has been updated"
+        print("Configuration has been updated")
 
 
 def pa_listSliceInfo(args, cmd):
@@ -528,26 +524,26 @@ def pa_listSliceInfo(args, cmd):
 
 def do_listSliceInfo(gopts, opts, args):
     if len(args) != 1:
-        print "list-slice-info : Please specify the slice name"
+        print("list-slice-info : Please specify the slice name")
         sys.exit()
     passwd = getPassword(gopts)
     req = { "slice-name" : args[0]}
     ret = connect(gopts, "list-slice-info", passwd, data=req)
     if 'msg' in ret:
-        print "Note: %s" % ret['msg']
+        print("Note: %s" % ret['msg'])
         del ret['msg']
-    print json.dumps(ret, sort_keys=True, indent = 2)
+    print(json.dumps(ret, sort_keys=True, indent = 2))
 
 def do_listDatapaths(gopts, opts, args):
     passwd = getPassword(gopts)
     ret = connect(gopts, "list-datapaths", passwd)
     if len(ret) <= 0:
-       print "No switches connected"
+       print("No switches connected")
        sys.exit()
     ret.sort()
-    print "Connected switches: "
+    print("Connected switches: ")
     for (i, sw) in enumerate(ret):
-        print "  %d : %s" % (i+1,sw)
+        print("  %d : %s" % (i+1,sw))
 
 def pa_listDatapathInfo(args, cmd):
     usage = "%s <dpid>" % USAGE.format(cmd)
@@ -558,12 +554,12 @@ def pa_listDatapathInfo(args, cmd):
 
 def do_listDatapathInfo(gopts, opts, args):
     if len(args) != 1:
-        print "list-datapath-info : Please specify the dpid."
+        print("list-datapath-info : Please specify the dpid.")
         sys.exit()
     passwd = getPassword(gopts)
     req = { "dpid" : args[0]}
     ret = connect(gopts, "list-datapath-info", passwd, data=req)
-    print json.dumps(ret, sort_keys=True, indent = 2)
+    print(json.dumps(ret, sort_keys=True, indent = 2))
 
 def pa_listDatapathStats(args, cmd):
     usage = "%s <dpid>" % USAGE.format(cmd)
@@ -574,12 +570,12 @@ def pa_listDatapathStats(args, cmd):
 
 def do_listDatapathStats(gopts, opts, args):
     if len(args) != 1:
-        print "list-datapath-stats : Please specify the dpid."
+        print("list-datapath-stats : Please specify the dpid.")
         sys.exit()
     passwd = getPassword(gopts)
     req = { "dpid" : args[0]}
     ret = connect(gopts, "list-datapath-stats", passwd, data=req)
-    print json.dumps(ret, sort_keys=True, indent = 2)
+    print(json.dumps(ret, sort_keys=True, indent = 2))
 
 def pa_listSliceStats(args, cmd):
     usage = "%s <slicename>" % USAGE.format(cmd)
@@ -591,12 +587,12 @@ def pa_listSliceStats(args, cmd):
 
 def do_listSliceStats(gopts, opts, args):
     if len(args) != 1:
-        print "list-slice-stats : Please specify the slice name"
+        print("list-slice-stats : Please specify the slice name")
         sys.exit()
     passwd = getPassword(gopts)
     req = { "slice-name" : args[0]}
     ret = connect(gopts, "list-slice-stats", passwd, data=req)
-    print json.dumps(ret, sort_keys=True, indent = 2)
+    print(json.dumps(ret, sort_keys=True, indent = 2))
 
 def pa_regEventCB(args, cmd):
     usage = "%s <url> <methodname> <eventtype> <name>" % USAGE.format(cmd)
@@ -610,7 +606,7 @@ def pa_regEventCB(args, cmd):
 
 def do_regEventCB(gopts, opts, args):
     if len(args) != 4:
-        print "register-event-callback : Must specify all the arguments"
+        print("register-event-callback : Must specify all the arguments")
         sys.exit()
     passwd = getPassword(gopts)
     req = { 'url' : args[0], 'method' : args[1], 'event-type' : args[2], 'cookie' : args[3]}
@@ -620,7 +616,7 @@ def do_regEventCB(gopts, opts, args):
         req['dpid'] = 'all'
     ret = connect(gopts, "register-event-callback", passwd, data=req)
     if ret:
-        print "Callback %s successfully added" % args[3]
+        print("Callback %s successfully added" % args[3])
 
 def pa_unregEventCB(args, cmd):
     usage = "%s <methodname> <eventtype> <name>" % USAGE.format(cmd)
@@ -634,7 +630,7 @@ def pa_unregEventCB(args, cmd):
 
 def do_unregEventCB(gopts, opts, args):
     if len(args) != 3:
-        print "unregister-event-callback : Must specify all the arguments"
+        print("unregister-event-callback : Must specify all the arguments")
         sys.exit()
     passwd = getPassword(gopts)
     req = { 'method' : args[0], 'event-type' : args[1], 'cookie' : args[2]}
@@ -644,12 +640,12 @@ def do_unregEventCB(gopts, opts, args):
         req['dpid'] = 'all'
     ret = connect(gopts, "unregister-event-callback", passwd, data=req)
     if ret:
-        print "Callback %s successfully removed" % args[2]
+        print("Callback %s successfully removed" % args[2])
 
 def do_listFVHealth(gopts, opts, args):
     passwd = getPassword(gopts)
     ret = connect(gopts, "list-fv-health", passwd)
-    print json.dumps(ret, sort_keys=True, indent = 2)
+    print(json.dumps(ret, sort_keys=True, indent = 2))
 
 def pa_listSliceHealth(args, cmd):
     usage = "%s <slicename>" % USAGE.format(cmd)
@@ -659,17 +655,17 @@ def pa_listSliceHealth(args, cmd):
 
 def do_listSliceHealth(gopts, opts, args):
     if len(args) != 1:
-        print "list-slice-health : Please specify the slice name"
+        print("list-slice-health : Please specify the slice name")
         sys.exit()
     passwd = getPassword(gopts)
     req = { "slice-name" : args[0]}
     ret = connect(gopts, "list-slice-health", passwd, data=req)
-    print json.dumps(ret, sort_keys=True, indent = 2)
+    print(json.dumps(ret, sort_keys=True, indent = 2))
 
 def do_listLinks(gopts, opts, args):
     passwd = getPassword(gopts)
     ret = connect(gopts, "list-links", passwd)
-    print json.dumps(ret, sort_keys=True, indent = 2)
+    print(json.dumps(ret, sort_keys=True, indent = 2))
 
 def pa_listflowdb(args, cmd):
     usage = "%s <dpid>" % USAGE.format(cmd)
@@ -679,14 +675,14 @@ def pa_listflowdb(args, cmd):
 
 def do_listflowdb(gopts, opts, args):
     if len(args) != 1:
-        print "list-datapath-flowdb : Please specify the dpid"
+        print("list-datapath-flowdb : Please specify the dpid")
         sys.exit()
     passwd = getPassword(gopts)
     req = { 'dpid' : args[0]}
     ret = connect(gopts, "list-datapath-flowdb", passwd, data=req)
-    print "Flows seen at FlowVisor: "
+    print("Flows seen at FlowVisor: ")
     for fbe in ret:
-        print fbe
+        print(fbe)
 
 def pa_listrewritedb(args, cmd):
     usage = "%s <slicename> <dpid>" % USAGE.format(cmd)
@@ -696,14 +692,14 @@ def pa_listrewritedb(args, cmd):
 
 def do_listrewritedb(gopts, opts, args):
     if len(args) != 2:
-        print "list-datapath-flowrewritedb : Please specify the slicename and dpid"
+        print("list-datapath-flowrewritedb : Please specify the slicename and dpid")
         sys.exit()
     passwd = getPassword(gopts)
     req = { 'dpid' : args[1], 'slice-name' : args[0]}
     ret = connect(gopts, "list-datapath-flowrewritedb", passwd, data=req)
-    print "Rewrites applied by FlowVisor: "
+    print("Rewrites applied by FlowVisor: ")
     for fbe in ret:
-        print fbe
+        print(fbe)
 
 def pa_listFSStatus(args, cmd):
     usage = "%s <fs-id>" % USAGE.format(cmd)
@@ -713,12 +709,12 @@ def pa_listFSStatus(args, cmd):
 
 def do_listFSStatus(gopts, opts, args):
     if len(args) != 1:
-        print "list-fs-status : Please specify a flowspace id"
+        print("list-fs-status : Please specify a flowspace id")
         sys.exit()
     passwd = getPassword(gopts)
     req = { 'fs-id' : int(args[0]) }
     ret = connect(gopts, "list-fs-status", passwd, data=req)
-    print "FlowSpace Request id %s : %s" % (args[0], ret)
+    print("FlowSpace Request id %s : %s" % (args[0], ret))
 
 
 def pa_help(args, cmd):
@@ -732,8 +728,8 @@ def do_help(gopts, opts, args):
     try:
         (pa, func) = CMDS[args[0]]
         pa(['--help'], args[0])
-    except KeyError, e:
-        print "Invalid command : %s is an unknown command." % args[0]
+    except KeyError as e:
+        print("Invalid command : %s is an unknown command." % args[0])
         sys.exit()
 
 
@@ -745,14 +741,14 @@ def makeMatch(matchStr):
     for item in matchItems:
         it = item.split('=')
         if len(it) != 2:
-            print it
-            print "Match items must be of the form =, not %s" % it
+            print(it)
+            print("Match items must be of the form =, not %s" % it)
             sys.exit()
         try:
             (mstr, func) = MATCHSTRS[it[0].lower()]
             match[mstr] = func(it[1])
-        except KeyError, e:
-            print "Unknown match item %s" % it[0]
+        except KeyError as e:
+            print("Unknown match item %s" % it[0])
             sys.exit()
     return match
 
@@ -764,8 +760,8 @@ def makeMatchWithRanges(matchStr,rng):
     for item in matchItems:
         it = item.split('=')
         if len(it) != 2:
-            print it
-            print "Match items must be of the form <key>=<val>"
+            print(it)
+            print("Match items must be of the form <key>=<val>")
             sys.exit()
         try:
             if it[0].lower() != 'dl_vlan':
@@ -773,8 +769,8 @@ def makeMatchWithRanges(matchStr,rng):
                 match[mstr] = func(it[1])
             else:
                 match['dl_vlan'] = rng
-        except KeyError, e:
-            print "Unknown match item %s" % it[0]
+        except KeyError as e:
+            print("Unknown match item %s" % it[0])
             sys.exit()
     return match
 
@@ -785,54 +781,54 @@ def getRange(matchStr):
     for item in matchItems:
         it = item.split('=')
         if len(it) != 2:
-            print "Match items must be of the form <key>=<val>"
+            print("Match items must be of the form <key>=<val>")
             sys.exit()
         if it[0].lower() == 'dl_vlan':
             ranges = it[1].split('-')
             if len(ranges) !=2:
-                print "The vlan range should be given in the form <from>-<to>, for eg. dl_vlan=10-100"
+                print("The vlan range should be given in the form <from>-<to>, for eg. dl_vlan=10-100")
     return ranges
 
 def connect(opts, cmd, passwd, data=None):
     try:
-        # print "start connect...."
+        # print("start connect....")
         url = getUrl(opts)
-        # print "Connecting to URL: %s" % url
-        passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
+        # print("Connecting to URL: %s" % url)
+        passman = urllib.request.HTTPPasswordMgrWithDefaultRealm()
         passman.add_password(None, url, opts.fv_user, passwd)
-        # print "opts.fv_user: %s" % opts.fv_user
-        authhandler = urllib2.HTTPBasicAuthHandler(passman)
-        # print "build_opener...."
-        opener = urllib2.build_opener(authhandler)
-        # print "build request...."
+        # print("opts.fv_user: %s" % opts.fv_user)
+        authhandler = urllib.request.HTTPBasicAuthHandler(passman)
+        # print("build_opener....")
+        opener = urllib.request.build_opener(authhandler)
+        # print("build request....")
         req = buildRequest(data, url, cmd)
-        # print "build request complete:%s...." % req.get_data()
+        # print("build request complete:%s...." % req.get_data())
         ph = opener.open(req)
-        # print "after open...."
+        # print("after open....")
         response_data = ph.read()
-        # print "Response data: %s" % response_data
+        # print("Response data: %s" % response_data)
         # return parseResponse("{\"result\": true}")
         return parseResponse(response_data)
-    except urllib2.HTTPError, e:
+    except urllib.request.HTTPError as e:
         if e.code == 401:
-            print "Authentication failed: invalid password"
+            print("Authentication failed: invalid password")
             sys.exit(1)
         elif e.code == 504:
-            print "HTTP Error 504: Gateway timeout"
+            print("HTTP Error 504: Gateway timeout")
             sys.exit(1)
         else:
-            print e
-    except urllib2.URLError, e:
-        print "Could not reach a FlowVisor RPC server at %s:%s." % (opts.host, opts.port)
-        print "Please check that FlowVisor is running and try again."
+            print(e)
+    except urllib.request.URLError as e:
+        print("Could not reach a FlowVisor RPC server at %s:%s." % (opts.host, opts.port))
+        print("Please check that FlowVisor is running and try again.")
         sys.exit(1)
-    except RuntimeError, e:
-        print e
+    except RuntimeError as e:
+        print(e)
 
 def parseResponse(data):
     j = json.loads(data)
     if 'error' in j:
-        print "%s -> %s" % (getError(j['error']['code']),j['error']['message'])
+        print("%s -> %s" % (getError(j['error']['code']),j['error']['message']))
         sys.exit(1)
     return j['result']
 
@@ -861,25 +857,25 @@ def list_callback(option, opt, value, parser):
     setattr(parser.values, option.dest, vals)
 
 def printVersion(option, opt, value, parser):
-    print "fvctl-0.1"
+    print("fvctl-0.1")
     sys.exit()
 
 def printHelp(option, opt, value, parser):
-    cmds = [x for x in CMDS.iterkeys()]
+    cmds = [x for x in CMDS.keys()]
     cmds.remove('help')
     cmds.sort()
     print(parser.format_help().strip())
-    print "\n Available commands are: "
+    print("\n Available commands are: ")
     for x in cmds:
       (sdesc, ldesc) = DESCS[x]
-      print "   {0:25}     {1:10}".format(x, sdesc)
-    print "\n See '%s help <command>' for more info on a specific command." % sys.argv[0]
+      print("   {0:25}     {1:10}".format(x, sdesc))
+    print("\n See '%s help <command>' for more info on a specific command." % sys.argv[0])
     sys.exit()
 
 
 
 def print_help(option, opt, value, parser):
-    print "%s %s %s %s" % (option, opt, value, parser)
+    print("%s %s %s %s" % (option, opt, value, parser))
 
 CONVFIELDS = [ 'dl_type', 'dl_vlan', 'dl_vpcp' ]
 
@@ -1113,8 +1109,8 @@ if __name__ == '__main__':
     (parse_args, do_func) = CMDS[rargs[0]]
     (opts, args) = parse_args(rargs[1:], rargs[0])
     do_func(gopts, opts, args)
-  except IndexError, e:
-    print "%s is an unknown command" % sys.argv[-1]
+  except IndexError as e:
+    print("%s is an unknown command" % sys.argv[-1])
     printHelp(None, None, None, parser)
 
 
