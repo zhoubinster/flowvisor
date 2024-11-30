@@ -38,9 +38,9 @@ def getUrl(opts):
     return URL % (opts.host, opts.port)
 
 def buildRequest(data, url, cmd):
-    print "request data:%s" % data
-    print "request url:%s" % url
-    print "request cmd:%s" % cmd
+    # print "request data:%s" % data
+    # print "request url:%s" % url
+    # print "request cmd:%s" % cmd
     j = { "id" : "fvctl", "method" : cmd, "jsonrpc" : "2.0" }
     h = {"Content-Type" : "application/json"}
     if data is not None:
@@ -795,22 +795,22 @@ def getRange(matchStr):
 
 def connect(opts, cmd, passwd, data=None):
     try:
-        print "start connect...."
+        # print "start connect...."
         url = getUrl(opts)
-        print "Connecting to URL: %s" % url
+        # print "Connecting to URL: %s" % url
         passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
         passman.add_password(None, url, opts.fv_user, passwd)
-        print "opts.fv_user: %s" % opts.fv_user
+        # print "opts.fv_user: %s" % opts.fv_user
         authhandler = urllib2.HTTPBasicAuthHandler(passman)
-        print "build_opener...."
+        # print "build_opener...."
         opener = urllib2.build_opener(authhandler)
-        print "build request...."
+        # print "build request...."
         req = buildRequest(data, url, cmd)
-        print "build request complete:%s...." % req.get_data()
+        # print "build request complete:%s...." % req.get_data()
         ph = opener.open(req)
-        print "after open...."
+        # print "after open...."
         response_data = ph.read()
-        print "Response data: %s" % response_data
+        # print "Response data: %s" % response_data
         # return parseResponse("{\"result\": true}")
         return parseResponse(response_data)
     except urllib2.HTTPError, e:
