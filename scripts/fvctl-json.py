@@ -788,23 +788,14 @@ def getRange(matchStr):
 
 def connect(opts, cmd, passwd, data=None):
     try:
-        # print("start connect....")
         url = getUrl(opts)
-        # print("Connecting to URL: %s" % url)
         passman = urllib.request.HTTPPasswordMgrWithDefaultRealm()
         passman.add_password(None, url, opts.fv_user, passwd)
-        # print("opts.fv_user: %s" % opts.fv_user)
         authhandler = urllib.request.HTTPBasicAuthHandler(passman)
-        # print("build_opener....")
         opener = urllib.request.build_opener(authhandler)
-        # print("build request....")
         req = buildRequest(data, url, cmd)
-        # print("build request complete:%s...." % req.get_data())
         ph = opener.open(req)
-        # print("after open....")
         response_data = ph.read()
-        # print("Response data: %s" % response_data)
-        # return parseResponse("{\"result\": true}")
         return parseResponse(response_data)
     except urllib.request.HTTPError as e:
         if e.code == 401:
