@@ -41,7 +41,7 @@ make
 sudo make install
 ```
 ### Step 8: Configure Flowvisor
-Set permissions and load the configuration:
+Set permissions and load the configuration. Please replace 'seed:seed' with your own 'username:usergroup.':
 ```bash
 sudo chown seed:seed -R /usr/local/share/db
 sudo chmod -R 777 /usr/local/share/db
