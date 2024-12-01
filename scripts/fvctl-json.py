@@ -34,9 +34,6 @@ def getUrl(opts):
     return URL % (opts.host, opts.port)
 
 def buildRequest(data, url, cmd):
-    # print("request data:%s" % data)
-    # print("request url:%s" % url)
-    # print("request cmd:%s" % cmd)
     j = { "id" : "fvctl", "method" : cmd, "jsonrpc" : "2.0" }
     h = {"Content-Type" : "application/json"}
     if data is not None:
