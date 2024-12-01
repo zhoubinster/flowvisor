@@ -9,7 +9,7 @@ Please download the SEED Ubuntu 20.04 VM from [SEED Labs](https://seedsecurityla
 ### Step 1: Install Prerequisites
 Install necessary tools. If already installed, skip this step.
 ```bash
-sudo apt install gcc make git ant tar
+sudo apt install gcc make git ant tar -y
 ```
 ### Step 2: Install Mininet
 ```bash
@@ -23,7 +23,7 @@ sudo apt install openjdk-11-jdk -y
 ### Step 4: Install python-is-python3
 This allows the use of python instead of python3.
 ```bash
-sudo apt install python-is-python3
+sudo apt install python-is-python3 -y
 ```
 ### Step 5: Download the Flowvisor Code
 **Important**: Do not use the official version, as this guide references a modified version. You may fork this branch to create your own version.
