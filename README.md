@@ -59,6 +59,10 @@ FlowVisor supports OpenFlow 1.0 only. When creating the topology, include the fo
 ```bash
 --switch ovsk,protocols=OpenFlow10
 ```
+For example:
+```bash
+sudo mn --custom custom-fat-tree-8pods.py --topo fattree --link=tc --arp --mac --controller=remote,ip=127.0.0.1,port=6633 --switch ovsk,protocols=OpenFlow10
+```
 ### 2. Java Remote Debug Port
 The default Java remote debug port is 5005. Use this port for debugging the program.
 ### 3. POX Controller
