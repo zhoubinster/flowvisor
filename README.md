@@ -1,4 +1,4 @@
-# Installation of Flowvisor on Ubuntu 20.04
+# Installation of Flowvisor on Ubuntu 20.04/24.04
 
 ## Preparation
 Please download the SEED Ubuntu 20.04 VM from [SEED Labs](https://seedsecuritylabs.org/labsetup.html) which we use in courses 620,615,745. This guide has been tested in this environment, but it should also work on versions above Ubuntu 20.04.
