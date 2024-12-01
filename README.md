@@ -85,6 +85,35 @@ If files transferred from Windows to Ubuntu contain ^M characters, use this comm
 ```bash
 sed -i 's/\r//' filename
 ```
+### 6. Some commands used in flowvisor
+Create slice:
+```bash
+fvctl -f pwd add-slice Purple tcp:127.0.0.1:4000 admin@Purple
+```
+List all slices:
+```bash
+fvctl -f pwd list-slices
+```
+View slice info:
+```bash
+fvctl -f pwd list-slice-info Purple
+```
+Remove slice:
+```bash
+fvctl -f pwd remove-slice Purple
+```
+Add a flowspace rule:
+```bash
+fvctl -f pwd add-flowspace purple_acc_s4_1 0300000000000004 1 in_port=2 Purple=7
+```
+Remove a flowspace rule:
+```bash
+fvctl -f pwd remove-flowspace purple_acc_s4_1
+```
+List all flowspace rules:
+```bash
+fvctl -f pwd list-flowspace
+```
 
 About FlowVisor
 =========
