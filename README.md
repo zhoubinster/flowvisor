@@ -69,7 +69,7 @@ git clone https://github.com/noxrepo/pox.git
 ```
 - **Run POX Controller:**
 ```bash
-  sudo ./pox.py forwarding.l2_learning openflow.of_01 --address=127.0.0.1 --port=4000
+sudo ./pox.py forwarding.l2_learning openflow.of_01 --address=127.0.0.1 --port=4000
 ```
 ### 4. FlowVisor Runtime Logs
 To monitor FlowVisor logs, use the following command:
