@@ -9,7 +9,7 @@ Please download the SEED Ubuntu 20.04 VM from [SEED Labs](https://seedsecurityla
 ### Step 1: Install Prerequisites
 Install necessary tools. If already installed, skip this step.
 ```bash
-sudo apt install gcc make git ant tar
+sudo apt install gcc make git tar -y
 ```
 ### Step 2: Install Mininet
 ```bash
@@ -20,30 +20,34 @@ sudo apt install mininet -y
 sudo apt update
 sudo apt install openjdk-11-jdk -y
 ```
-### Step 4: Install python-is-python3
+### Step 4: Install Apache Ant
+```bash
+sudo apt install ant -y
+```
+### Step 5: Install python-is-python3
 This allows the use of python instead of python3.
 ```bash
-sudo apt install python-is-python3
+sudo apt install python-is-python3 -y
 ```
-### Step 5: Download the Flowvisor Code
+### Step 6: Download the Flowvisor Code
 **Important**: Do not use the official version, as this guide references a modified version. You may fork this branch to create your own version.
 ```bash
 git clone https://github.com/zhoubinster/flowvisor.git
 ```
-### Step 6: Install Flowvisor
+### Step 7: Install Flowvisor
 ```bash
 cd flowvisor/
 make
 sudo make install
 ```
-### Step 7: Configure Flowvisor
+### Step 8: Configure Flowvisor
 Set permissions and load the configuration:
 ```bash
 sudo chown seed:seed -R /usr/local/share/db
 sudo chmod -R 777 /usr/local/share/db
 fvconfig load /etc/flowvisor/config.json
 ```
-### Step 8: Test Flowvisor
+### Step 9: Test Flowvisor
 1. Create the password file using the vi command.
 2. Set the configuration:
 ```bash
